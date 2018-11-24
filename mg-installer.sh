@@ -29,7 +29,7 @@ install_utilities() {
 	check_if_installed "filezilla"
         RESPONSE=$?
         if [ "$RESPONSE" -ne "1" ]; then
-		install_packages "terminator" "filezilla"
+		install_packages "terminator" "filezilla" "gnome-tweak-tool"
 	fi
 }
 
