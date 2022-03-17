@@ -55,6 +55,18 @@ install_docker() {
 	fi
 }
 
+install_git() {
+	echo -e "${BLUE}Installing Git:${NC}"
+	check_if_installed "git"
+	RESPONSE=$?
+	if [ "$RESPONSE" -ne "1" ]; then
+		install_packages "git"
+	fi
+	git config --global user.email "marcogonzalo@gmail.com"
+	git config --global user.name "@MarcoGonzalo"
+	echo -e "${YELLOW}Remember to set your SSH keys!${NC}"
+}
+
 install_google_chrome() {
 	echo -e "${BLUE}Installing Google Chrome:${NC}"
 	check_if_installed "google-chrome-stable"
@@ -68,16 +80,12 @@ install_google_chrome() {
 	fi
 }
 
-install_git() {
-	echo -e "${BLUE}Installing Git:${NC}"
-	check_if_installed "git"
-	RESPONSE=$?
-	if [ "$RESPONSE" -ne "1" ]; then
-		install_packages "git"
-	fi
-	git config --global user.email "marcogonzalo@gmail.com"
-	git config --global user.name "@MarcoGonzalo"
-	echo -e "${YELLOW}Remember to set your SSH keys!${NC}"
+install_npm() {
+	apt install curl 
+	curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
+	source ./profile
+	nvm install node
+	npm install -g npm
 }
 
 install_sublime_text() {
@@ -92,14 +100,44 @@ install_sublime_text() {
 	fi
 }
 
+install_vscode() {
+	echo -e "${BLUE}Installing VSCode:${NC}"
+	check_if_installed "code"
+	RESPONSE=$?
+	if [ "$RESPONSE" -ne "1" ]; then
+		wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg
+		sudo install -o root -g root -m 644 packages.microsoft.gpg /etc/apt/trusted.gpg.d/
+		sudo sh -c 'echo "deb [arch=amd64,arm64,armhf signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" > /etc/apt/sources.list.d/vscode.list'
+		rm -f packages.microsoft.gpg
+	fi
+	apt install apt-transport-https
+	apt update
+	apt install code
+}
+
+install_zsh() {
+	echo -e "${BLUE}Installing zsh:${NC}"
+	check_if_installed "zsh"
+        RESPONSE=$?
+        if [ "$RESPONSE" -ne "1" ]; then
+		install_packages "zsh"
+		chsh -s $(which zsh)
+		sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
+	fi
+	echo -e "${YELLOW}ZSH is already installed. You need to relogin to see changes.${NC}"
+}
+
 echo -e "<--- ${ORANGE}Starting MGInstaller${NC} --->"
 echo -e "${BLUE}Updating and upgrading installed packages${NC}"
 apt-get update
 apt-get upgrade -y
 install_utilities
+install_git
 install_google_chrome
 install_sublime_text
+install_vscode
 install_docker
-install_git
+install_npm
+install_zsh
 
 exit 0
