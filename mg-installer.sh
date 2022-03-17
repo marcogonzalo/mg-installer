@@ -51,6 +51,7 @@ install_docker() {
 		install_packages "docker-ce"
 		sudo groupadd docker
 		sudo usermod -aG docker $USER
+		newgrp docker
 	fi
 	echo -e "${BLUE}Installing Docker Compose:${NC}"
 	check_if_installed "docker-compose"
