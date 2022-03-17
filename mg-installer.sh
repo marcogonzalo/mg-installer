@@ -17,12 +17,18 @@ check_if_installed() {
 }
 
 install_packages() {
-	apt-get update
-	apt-get install -y $@
+	sudo apt update
+	sudo apt install -y $@
 	echo -e "${GREEN}- Installed. ($@)${NC}"
 }
 
 # Functions for installing packages
+
+preinstall() {
+	sudo apt update
+	sudo apt upgrade -y
+	install_packages "curl" "apt-transport-https" "ca-certificates" s"oftware-properties-common"
+}
 
 install_utilities() {
 	echo -e "${BLUE}Installing utilities:${NC}"
@@ -38,19 +44,20 @@ install_docker() {
 	check_if_installed "docker-ce"
 	RESPONSE=$?
 	if [ "$RESPONSE" -ne "1" ]; then
-		apt-get remove docker docker-engine docker.io -y
-		apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+		sudo apt remove docker docker-engine docker.io -y
 		curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
 		apt-key fingerprint 0EBFCD88
 		echo "deb [arch=$(uname -m)] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list
 		install_packages "docker-ce"
+		sudo groupadd docker
+		sudo usermod -aG docker $USER
 	fi
 	echo -e "${BLUE}Installing Docker Compose:${NC}"
 	check_if_installed "docker-compose"
 	RESPONSE=$?
 	if [ "$RESPONSE" -ne "1" ]; then
-		curl -L "https://github.com/docker/compose/releases/download/1.23.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-		chmod +x /usr/local/bin/docker-compose
+		sudo curl -L "https://github.com/docker/compose/releases/download/1.23.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+		sudo chmod +x /usr/local/bin/docker-compose
 		echo -e "${GREEN}$(docker-compose --version)"
 	fi
 }
@@ -74,14 +81,13 @@ install_google_chrome() {
 	if [ "$RESPONSE" -ne "1" ]; then
 		echo "deb [arch=$(uname -m)] http://dl.google.com/linux/chrome/deb/ stable main" | tee /etc/apt/sources.list.d/google-chrome.list
 		wget https://dl.google.com/linux/linux_signing_key.pub
-		apt-key add linux_signing_key.pub
+		sudo apt-key add linux_signing_key.pub
 		install_packages "google-chrome-stable"
-		rm linux_signing_key.pub
+		sudo rm linux_signing_key.pub
 	fi
 }
 
 install_npm() {
-	apt install curl 
 	curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
 	source ./profile
 	nvm install node
@@ -109,10 +115,9 @@ install_vscode() {
 		sudo install -o root -g root -m 644 packages.microsoft.gpg /etc/apt/trusted.gpg.d/
 		sudo sh -c 'echo "deb [arch=amd64,arm64,armhf signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" > /etc/apt/sources.list.d/vscode.list'
 		rm -f packages.microsoft.gpg
+		sudo apt update
+		install_packages "code"
 	fi
-	apt install apt-transport-https
-	apt update
-	apt install code
 }
 
 install_zsh() {
@@ -128,9 +133,9 @@ install_zsh() {
 }
 
 echo -e "<--- ${ORANGE}Starting MGInstaller${NC} --->"
-echo -e "${BLUE}Updating and upgrading installed packages${NC}"
-apt-get update
-apt-get upgrade -y
+echo -e "${BLUE}Updating and upgrading installed packages${NC
+
+preinstall
 install_utilities
 install_git
 install_google_chrome
